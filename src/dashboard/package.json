@@ -150,6 +150,7 @@
   ],
   "resolutions": {
     "mockjs/commander": "^8.2.0",
-    "glob": "^9.0.0"
+    "glob": "^9.0.0",
+    "@babel/core": "^7.29.7"
   }
 }
