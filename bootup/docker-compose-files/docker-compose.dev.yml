@@ -11,7 +11,7 @@
 version: '3.2'
 services:
   cello-dashboard:
-    image: cello/dashboard:latest
+    image: hyperledger/cello-dashboard
     container_name: cello-dashboard
     ports:
       - "${DASHBOARD_SERVICE_PORT:-8081}:8081"
@@ -38,7 +38,7 @@ services:
 
   # api engine service of cello 
   cello-api-engine:
-    image: cello/api-engine:latest
+    image: hyperledger/cello-api-engine
     container_name: cello-api-engine
     restart: unless-stopped
     stdin_open: true
@@ -67,7 +67,7 @@ services:
 
   # cello docker agent may deploy to an individual server. This cofig only serves development purpose.
   cello-docker-agent:
-    image: cello/hyperledger-fabric-agent:local
+    image: hyperledger/cello-agent-docker
     container_name: cello-docker-agent
     hostname: cello.docker.agent
     restart: always
