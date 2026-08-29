@@ -61,7 +61,11 @@ const Copilot = ({ dispatch, copilot = {} }) => {
               if (item.role === 'assistant' && !item.content && !item.error && sending) return null;
               return (
                 <div key={item.id} className={`${styles.row} ${styles[item.role]}`}>
-                  <div className={`${styles.bubble} ${item.error ? styles.error : ''}`}>
+                  <div
+                    className={`${styles.bubble} ${styles[item.role]} ${
+                      item.error ? styles.error : ''
+                    }`}
+                  >
                     {item.error ? intl.formatMessage({ id: 'copilot.error' }) : item.content}
                   </div>
                 </div>

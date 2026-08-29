@@ -80,8 +80,16 @@ describe('copilot model', () => {
     ]);
     expect('CALL' in callStep.value).toBe(true);
 
-    // streamChat resolves without doneData -> skips second SELECT, goes to finally put
-    const afterStream = saga.next();
+    // streamChat returns doneData — inject it via saga.next; saga checks doneData.reply
+    const donePayload = { reply: 'Three peers found.', stop_reason: 'stop', tool_calls: [] };
+    // doneData.reply exists so saga does a second SELECT to check last message content
+    const selectStep2 = saga.next(donePayload);
+    expect('SELECT' in selectStep2.value).toBe(true);
+
+    // last message has content (tokens arrived), so dispatchAppend is skipped; callback fires, then finally put
+    const afterStream = saga.next({
+      messages: [{ role: 'assistant', content: 'Three peers found.' }],
+    });
     expect(afterStream.value.PUT.action.type).toBe('setSending');
     expect(afterStream.value.PUT.action.payload).toBe(false);
 

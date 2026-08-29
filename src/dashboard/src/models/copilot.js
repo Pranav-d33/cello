@@ -77,7 +77,6 @@ export default {
       yield put({ type: 'setSending', payload: true });
       yield put({ type: 'addMessage', payload: { id: makeId(), role: 'assistant', content: '' } });
 
-      let doneData = null;
       let streamErr = null;
 
       try {
@@ -86,15 +85,12 @@ export default {
           .filter(m => !(m.role === 'assistant' && !m.content && !m.error))
           .map(m => ({ role: m.role, content: m.content }));
 
-        yield call(() =>
+        const doneData = yield call(() =>
           streamChat({
             messages,
             onToken: data => {
               const chunk = typeof data === 'string' ? data : data?.text ?? '';
               dispatchAppend(chunk);
-            },
-            onDone: data => {
-              doneData = data;
             },
             onError: data => {
               streamErr = data;
@@ -104,7 +100,9 @@ export default {
 
         if (streamErr) throw new Error(streamErr.message || streamErr.msg || 'stream error');
 
-        if (doneData && doneData.reply) {
+        if (!doneData) throw new Error('stream closed without a done event');
+
+        if (doneData.reply) {
           const cur = yield select(s => s.copilot);
           const last = cur.messages[cur.messages.length - 1];
           if (!last?.content) dispatchAppend(doneData.reply);

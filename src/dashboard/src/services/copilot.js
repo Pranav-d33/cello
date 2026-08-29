@@ -7,45 +7,6 @@ export const COPILOT_CHAT_URL = '/api/v1/copilot/chat';
 
 const getToken = () => window.localStorage.getItem('cello-token') || '';
 
-export const parseSseFrames = (buffer, onEvent) => {
-  const lines = buffer.split('\n');
-  let event = null;
-  let data = null;
-  const remaining = lines.pop() || '';
-
-  // eslint-disable-next-line no-restricted-syntax
-  for (const line of lines) {
-    if (!line || line.startsWith(':')) continue;
-    if (line.startsWith('event:')) {
-      event = line.slice(6).trim();
-      continue;
-    }
-    if (line.startsWith('data:')) {
-      data = line.slice(5).trim();
-      continue;
-    }
-    if (event && data !== null) {
-      try {
-        onEvent(event, JSON.parse(data));
-      } catch (_) {
-        onEvent(event, data);
-      }
-      event = null;
-      data = null;
-    }
-  }
-
-  if (event && data !== null) {
-    try {
-      onEvent(event, JSON.parse(data));
-    } catch (_) {
-      onEvent(event, data);
-    }
-  }
-
-  return remaining;
-};
-
 export const streamChat = async ({
   messages,
   signal,
@@ -96,12 +57,16 @@ export const streamChat = async ({
   let currentEvent = null;
   let currentData = null;
 
+  let donePayload = null;
+
   const dispatch = (event, data) => {
     if (event === 'token' && onToken) onToken(data);
     else if (event === 'tool_call' && onToolCall) onToolCall(data);
     else if (event === 'tool_result' && onToolResult) onToolResult(data);
-    else if (event === 'done' && onDone) onDone(data);
-    else if (event === 'error' && onError) onError(data);
+    else if (event === 'done') {
+      donePayload = data;
+      if (onDone) onDone(data);
+    } else if (event === 'error' && onError) onError(data);
   };
 
   // eslint-disable-next-line no-await-in-loop
@@ -142,5 +107,5 @@ export const streamChat = async ({
       dispatch(currentEvent, currentData);
     }
   }
-  return null;
+  return donePayload;
 };
