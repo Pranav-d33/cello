@@ -8,6 +8,9 @@ const makeId = () =>
     .toString(36)
     .slice(2, 8)}`;
 
+// Cannot yield put() from inside the onToken callback because the saga is
+// suspended at yield call() when tokens arrive. Direct store dispatch is the
+// standard dva workaround for streaming callbacks.
 const dispatchAppend = text => {
   if (!text) return;
   try {
